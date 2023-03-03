@@ -16,5 +16,5 @@ jobs:
         run: ./gradlew jibDockerBuild --image=ghcr.io/neetkee/chatgpt-telegram-bot
       - name: push
         run: |
-          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u neetkee --password-stdin
+          echo ${{ secrets.REGISTRY_TOKEN }} | docker login ghcr.io -u neetkee --password-stdin
           docker push ghcr.io/neetkee/chatgpt-telegram-bot:latest
