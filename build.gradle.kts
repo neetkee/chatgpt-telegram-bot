@@ -14,7 +14,6 @@ repositories {
 val exposedVersion: String by project
 dependencies {
     implementation("org.telegram:telegrambots:6.5.0")
-    implementation("io.insert-koin:koin-core:3.3.3")
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
     implementation("ch.qos.logback:logback-classic:1.4.5")
     implementation("org.xerial:sqlite-jdbc:3.41.0.0")
