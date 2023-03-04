@@ -22,7 +22,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
     implementation(platform("com.aallam.openai:openai-client-bom:3.0.0"))
     implementation("com.aallam.openai:openai-client")
-    implementation("io.ktor:ktor-client-okhttp")
+    implementation("io.ktor:ktor-client-cio")
 
     testImplementation(kotlin("test"))
 }
