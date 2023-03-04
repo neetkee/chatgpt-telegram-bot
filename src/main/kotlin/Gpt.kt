@@ -2,12 +2,20 @@ import com.aallam.openai.api.BetaOpenAI
 import com.aallam.openai.api.chat.ChatCompletionRequest
 import com.aallam.openai.api.chat.ChatMessage
 import com.aallam.openai.api.chat.ChatRole
+import com.aallam.openai.api.logging.LogLevel
+import com.aallam.openai.api.logging.Logger
 import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.OpenAI
+import com.aallam.openai.client.OpenAIConfig
 
 @OptIn(BetaOpenAI::class)
 object Gpt {
-    private val openAI = OpenAI(BotSettings.openAIKey)
+    private val openAIConfig = OpenAIConfig(
+        token = BotSettings.openAIKey,
+        logger = Logger.Default,
+        logLevel = LogLevel.None
+    )
+    private val openAI = OpenAI(openAIConfig)
     private val userContexts = mutableMapOf<Long, MutableList<ChatMessage>>()
 
     fun clearUserContext(userId: Long) {
