@@ -83,7 +83,7 @@ class Bot(private val botSettings: BotSettings) : TelegramLongPollingBot(botSett
         val sendMessage = SendMessage.builder()
             .chatId(chatId)
             .text(messageText)
-            .build().also { it.enableHtml(true) }
+            .build()
         execute(sendMessage)
     }
 
