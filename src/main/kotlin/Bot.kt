@@ -1,4 +1,5 @@
 import kotlinx.coroutines.runBlocking
+import mu.KotlinLogging
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import org.telegram.telegrambots.meta.api.methods.send.SendChatAction
@@ -6,6 +7,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.objects.Update
 
 class Bot(private val botSettings: BotSettings) : TelegramLongPollingBot(botSettings.telegramToken) {
+    private val logger = KotlinLogging.logger {}
     override fun getBotUsername(): String = botSettings.telegramBotUsername
 
     override fun onUpdateReceived(update: Update) {
@@ -57,8 +59,12 @@ class Bot(private val botSettings: BotSettings) : TelegramLongPollingBot(botSett
         }
 
         sendTypingAction(update.chatId)
-        val responseMessage = runBlocking { Gpt.getResponse(userId, update.message.text) }
-        sendMessage(update.chatId, responseMessage)
+        runBlocking { Gpt.getResponse(userId, update.message.text) }
+            .onSuccess { sendMessage(update.chatId, it) }
+            .onFailure {
+                logger.error(it) {}
+                sendMessage(update.chatId, "An error has occurred. Please try calling the /cancel command.")
+            }
     }
 
     private fun sendTypingAction(chatId: Long) {

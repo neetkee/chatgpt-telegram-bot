@@ -16,7 +16,7 @@ object Gpt {
         }
     }
 
-    suspend fun getResponse(userId: Long, message: String): String {
+    suspend fun getResponse(userId: Long, message: String): Result<String> = runCatching {
         val chatCompletionMessage = ChatMessage(
             role = ChatRole("user"),
             content = message
@@ -34,6 +34,6 @@ object Gpt {
                 content = responseContent
             )
         )
-        return responseContent
+        return Result.success(responseContent)
     }
 }
