@@ -11,6 +11,10 @@ class Bot(private val botSettings: BotSettings) : TelegramLongPollingBot(botSett
     override fun getBotUsername(): String = botSettings.telegramBotUsername
 
     override fun onUpdateReceived(update: Update) {
+        if (update.hasMessage().not() || update.message.hasText().not()) {
+            sendMessage(update.chatId, "Only text is supported.")
+            return
+        }
         when (update.toCommandType()) {
             CommandType.START -> handleStartCommand(update)
             CommandType.ADD_USER -> handleAddUserCommand(update)
