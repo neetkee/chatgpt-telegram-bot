@@ -1,10 +1,11 @@
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import mu.KotlinLogging
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import org.telegram.telegrambots.meta.api.methods.send.SendChatAction
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.objects.Update
+import kotlin.time.Duration.Companion.seconds
 
 class Bot(private val botSettings: BotSettings) : TelegramLongPollingBot(botSettings.telegramToken) {
     private val logger = KotlinLogging.logger {}
@@ -62,8 +63,17 @@ class Bot(private val botSettings: BotSettings) : TelegramLongPollingBot(botSett
             return
         }
 
-        sendTypingAction(update.chatId)
-        runBlocking { Gpt.getResponse(userId, update.message.text) }
+        runBlocking(Dispatchers.IO) {
+            val typingJob = launch {
+                while (true) {
+                    sendTypingAction(update.chatId)
+                    delay(5.seconds)
+                }
+            }
+            val getGptResponseJob = async { Gpt.getResponse(userId, update.message.text) }
+            getGptResponseJob.invokeOnCompletion { typingJob.cancel() }
+            getGptResponseJob.await()
+        }
             .onSuccess { sendMessage(update.chatId, it) }
             .onFailure {
                 logger.error(it) {}
