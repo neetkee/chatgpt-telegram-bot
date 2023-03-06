@@ -2,14 +2,20 @@ import kotlinx.coroutines.*
 import mu.KotlinLogging
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
+import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands
 import org.telegram.telegrambots.meta.api.methods.send.SendChatAction
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.objects.Update
+import org.telegram.telegrambots.meta.api.objects.commands.BotCommand
 import kotlin.time.Duration.Companion.seconds
 
 class Bot(private val botSettings: BotSettings) : TelegramLongPollingBot(botSettings.telegramToken) {
     private val logger = KotlinLogging.logger {}
     override fun getBotUsername(): String = botSettings.telegramBotUsername
+
+    init {
+        setCommands()
+    }
 
     override fun onUpdateReceived(update: Update) {
         if (update.hasMessage().not() || update.message.hasText().not()) {
@@ -95,6 +101,13 @@ class Bot(private val botSettings: BotSettings) : TelegramLongPollingBot(botSett
             .text(messageText)
             .build()
         execute(sendMessage)
+    }
+
+    private fun setCommands() {
+        val resetCommand = SetMyCommands.builder()
+            .command(BotCommand(CommandType.CANCEL.toString().lowercase(), "Clear current conversation state"))
+            .build()
+        execute(resetCommand)
     }
 
     private val Update.chatId get() = message.chatId
