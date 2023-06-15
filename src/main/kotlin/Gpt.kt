@@ -6,6 +6,7 @@ import com.aallam.openai.api.http.Timeout
 import com.aallam.openai.api.logging.LogLevel
 import com.aallam.openai.api.logging.Logger
 import com.aallam.openai.api.model.ModelId
+import com.aallam.openai.client.LoggingConfig
 import com.aallam.openai.client.OpenAI
 import com.aallam.openai.client.OpenAIConfig
 import kotlin.time.Duration.Companion.minutes
@@ -14,9 +15,11 @@ import kotlin.time.Duration.Companion.minutes
 object Gpt {
     private val openAIConfig = OpenAIConfig(
         token = BotSettings.openAIKey,
-        logger = Logger.Default,
-        logLevel = LogLevel.None,
-        timeout = Timeout(socket = 2.minutes)
+        timeout = Timeout(request = 2.minutes),
+        logging = LoggingConfig(
+            logLevel = LogLevel.None,
+            logger = Logger.Default
+        )
     )
     private val openAI = OpenAI(openAIConfig)
     private val userContexts = mutableMapOf<Long, MutableList<ChatMessage>>()
@@ -35,7 +38,7 @@ object Gpt {
         userContexts.getOrPut(userId) { mutableListOf() }.add(chatCompletionMessage)
 
         val chatCompletionRequest = ChatCompletionRequest(
-            model = ModelId("gpt-3.5-turbo"),
+            model = ModelId(BotSettings.openAIModel),
             messages = userContexts.getValue(userId)
         )
         val responseContent = openAI.chatCompletion(chatCompletionRequest).choices.first().message!!.content

@@ -20,6 +20,7 @@ services:
     restart: unless-stopped
     environment:
       - OPENAI_KEY=OpenAIKey
+      - OPENAI_MODEL=gpt-3.5-turbo-16k
       - SQLITE_PATH=/tmp/bot.sqlite
       - TELEGRAM_BOT_ADMIN_ID=1234567
       - TELEGRAM_BOT_TOKEN=123456:ABC_Def
@@ -34,6 +35,7 @@ services:
 | Name                  | Description                                                |
 |-----------------------|------------------------------------------------------------|
 | OPENAI_KEY            | API key used to access OpenAI                              |
+| OPENAI_MODEL          | Model to use for requests. Defaults to gpt-3.5-turbo       |
 | SQLITE_PATH           | The path to the SQLite database file                       |
 | TELEGRAM_BOT_ADMIN_ID | The unique identifier of the Telegram admin for the bot    |
 | TELEGRAM_BOT_TOKEN    | The token string used to authenticate the Telegram bot API |
