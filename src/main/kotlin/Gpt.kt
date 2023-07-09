@@ -41,7 +41,8 @@ object Gpt {
             model = ModelId(BotSettings.openAIModel),
             messages = userContexts.getValue(userId)
         )
-        val responseContent = openAI.chatCompletion(chatCompletionRequest).choices.first().message!!.content
+        val responseContent = openAI.chatCompletion(chatCompletionRequest).choices
+            .firstOrNull()?.message?.content ?: "Answer is empty"
         userContexts.getValue(userId).add(
             ChatMessage(
                 role = ChatRole.Assistant,
