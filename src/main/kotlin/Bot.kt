@@ -15,6 +15,7 @@ class Bot(private val botSettings: BotSettings) : TelegramLongPollingBot(botSett
 
     init {
         setCommands()
+        logSettings()
     }
 
     override fun onUpdateReceived(update: Update) {
@@ -108,6 +109,14 @@ class Bot(private val botSettings: BotSettings) : TelegramLongPollingBot(botSett
             .command(BotCommand(CommandType.CANCEL.toString().lowercase(), "Clear current conversation state"))
             .build()
         execute(resetCommand)
+    }
+
+    private fun logSettings() {
+        val message = """
+            Bot username: ${botSettings.telegramBotUsername}.
+            OpenAI model: ${botSettings.openAIModel}.
+        """.trimIndent()
+        logger.info(message)
     }
 
     private val Update.chatId get() = message.chatId
