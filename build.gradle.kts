@@ -1,7 +1,9 @@
+import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
+
 plugins {
-    kotlin("jvm") version "1.9.0"
-    id("com.google.cloud.tools.jib") version "3.3.2"
-    id("com.github.ben-manes.versions") version "0.47.0"
+    kotlin("jvm") version "1.9.10"
+    id("com.google.cloud.tools.jib") version "3.4.0"
+    id("com.github.ben-manes.versions") version "0.49.0"
     application
 }
 
@@ -14,14 +16,14 @@ repositories {
 
 val exposedVersion: String by project
 dependencies {
-    implementation("org.telegram:telegrambots:6.7.0")
+    implementation("org.telegram:telegrambots:6.8.0")
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
-    implementation("ch.qos.logback:logback-classic:1.4.8")
-    implementation("org.xerial:sqlite-jdbc:3.42.0.0")
+    implementation("ch.qos.logback:logback-classic:1.4.11")
+    implementation("org.xerial:sqlite-jdbc:3.43.2.1")
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
-    implementation(platform("com.aallam.openai:openai-client-bom:3.3.1"))
+    implementation(platform("com.aallam.openai:openai-client-bom:3.5.0"))
     implementation("com.aallam.openai:openai-client")
     implementation("io.ktor:ktor-client-cio")
 
@@ -38,4 +40,17 @@ kotlin {
 
 application {
     mainClass.set("MainKt")
+}
+
+tasks.withType<DependencyUpdatesTask> {
+    rejectVersionIf {
+        isNonStable(candidate.version)
+    }
+}
+
+fun isNonStable(version: String): Boolean {
+    val stableKeyword = listOf("RELEASE", "FINAL", "GA").any { version.uppercase().contains(it) }
+    val regex = "^[0-9,.v-]+(-r)?$".toRegex()
+    val isStable = stableKeyword || regex.matches(version)
+    return isStable.not()
 }

@@ -1,4 +1,3 @@
-import com.aallam.openai.api.BetaOpenAI
 import com.aallam.openai.api.chat.ChatCompletionRequest
 import com.aallam.openai.api.chat.ChatMessage
 import com.aallam.openai.api.chat.ChatRole
@@ -11,7 +10,6 @@ import com.aallam.openai.client.OpenAI
 import com.aallam.openai.client.OpenAIConfig
 import kotlin.time.Duration.Companion.minutes
 
-@OptIn(BetaOpenAI::class)
 object Gpt {
     private val openAIConfig = OpenAIConfig(
         token = BotSettings.openAIKey,
