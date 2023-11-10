@@ -1,7 +1,7 @@
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 
 plugins {
-    kotlin("jvm") version "1.9.10"
+    kotlin("jvm") version "1.9.20"
     id("com.google.cloud.tools.jib") version "3.4.0"
     id("com.github.ben-manes.versions") version "0.49.0"
     application
@@ -19,11 +19,11 @@ dependencies {
     implementation("org.telegram:telegrambots:6.8.0")
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
     implementation("ch.qos.logback:logback-classic:1.4.11")
-    implementation("org.xerial:sqlite-jdbc:3.43.2.1")
+    implementation("org.xerial:sqlite-jdbc:3.43.2.2")
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
-    implementation(platform("com.aallam.openai:openai-client-bom:3.5.0"))
+    implementation(platform("com.aallam.openai:openai-client-bom:3.5.1"))
     implementation("com.aallam.openai:openai-client")
     implementation("io.ktor:ktor-client-cio")
 
