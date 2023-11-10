@@ -2,6 +2,7 @@ import kotlinx.coroutines.*
 import mu.KotlinLogging
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
+import org.telegram.telegrambots.meta.api.methods.ParseMode
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands
 import org.telegram.telegrambots.meta.api.methods.send.SendChatAction
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
@@ -81,7 +82,7 @@ class Bot(private val botSettings: BotSettings) : TelegramLongPollingBot(botSett
             getGptResponseJob.invokeOnCompletion { typingJob.cancel() }
             getGptResponseJob.await()
         }
-            .onSuccess { sendMessage(update.chatId, it) }
+            .onSuccess { sendMessage(update.chatId, it, ParseMode.MARKDOWN) }
             .onFailure {
                 logger.error(it) {}
                 sendMessage(update.chatId, "An error has occurred. Please try calling the /cancel command.")
@@ -96,10 +97,11 @@ class Bot(private val botSettings: BotSettings) : TelegramLongPollingBot(botSett
         execute(sendChatAction)
     }
 
-    private fun sendMessage(chatId: Long, messageText: String) {
+    private fun sendMessage(chatId: Long, messageText: String, parseMode: String? = null) {
         val sendMessage = SendMessage.builder()
             .chatId(chatId)
             .text(messageText)
+            .parseMode(parseMode)
             .build()
         execute(sendMessage)
     }
