@@ -112,11 +112,10 @@ class Bot(private val botSettings: BotSettings) : TelegramLongPollingBot(botSett
     }
 
     private fun logSettings() {
-        val message = """
-            Bot username: ${botSettings.telegramBotUsername}.
-            OpenAI model: ${botSettings.openAIModel}.
-        """.trimIndent()
-        logger.info(message)
+        listOf(
+            "Bot username: ${botSettings.telegramBotUsername}",
+            "OpenAI model: ${botSettings.openAIModel}"
+        ).forEach { message -> logger.info(message) }
     }
 
     private val Update.chatId get() = message.chatId
