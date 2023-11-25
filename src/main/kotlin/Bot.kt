@@ -60,7 +60,7 @@ class Bot(private val botSettings: BotSettings) : TelegramLongPollingBot(botSett
             update.message.text.split(" ")[1].toLong()
         }.onSuccess { userId ->
             transaction {
-                User.saveOrCreate(userId)
+                User.getOrCreate(userId)
                 sendMessage(update.chatId, "User added.")
             }
         }.onFailure { sendMessage(update.chatId, "Can't parse user ID.") }
