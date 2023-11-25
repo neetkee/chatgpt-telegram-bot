@@ -7,6 +7,8 @@ import org.telegram.telegrambots.meta.api.methods.ParseMode
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands
 import org.telegram.telegrambots.meta.api.methods.send.SendChatAction
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto
+import org.telegram.telegrambots.meta.api.objects.InputFile
 import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.api.objects.commands.BotCommand
 import kotlin.time.Duration.Companion.seconds
@@ -37,6 +39,7 @@ class Bot(private val botSettings: BotSettings) : TelegramLongPollingBot(botSett
             CommandType.ADD_USER -> handleAddUserCommand(update)
             CommandType.UNKNOWN -> sendMessage(update.chatId, "Can't parse command")
             CommandType.CANCEL -> handleCancelCommand(update)
+            CommandType.IMAGE -> handleImageCommand(update)
             null -> handleGPTResponse(update)
         }
     }
@@ -70,22 +73,14 @@ class Bot(private val botSettings: BotSettings) : TelegramLongPollingBot(botSett
 
     private fun handleGPTResponse(update: Update) {
         val userId = update.userId
-        val userHasAccess = transaction {
-            userId == botSettings.telegramBotAdminId || User.findById(userId) != null
-        }
-        if (userHasAccess.not()) {
-            sendMessage(update.chatId, "You don't have access.")
-            return
+        if (isUserHasAccess(userId).not()) {
+            sendAccessDeniedMessage(update.chatId)
         }
 
-        runBlocking(Dispatchers.IO) {
-            val typingJob = launch {
-                while (true) {
-                    sendTypingAction(update.chatId)
-                    delay(5.seconds)
-                }
-            }
-            val getGptResponseJob = async {
+        val chatId = update.chatId
+        wrapWithWaiting(
+            waitingBody = { sendAction(chatId, "typing") },
+            messageBody = {
                 val photos = update.message.photo
                 if (photos.isNullOrEmpty().not()) {
                     val photo = photos.last()
@@ -94,20 +89,59 @@ class Bot(private val botSettings: BotSettings) : TelegramLongPollingBot(botSett
                     Gpt.getResponseForImage(userId, photoUrl, update.message.caption)
                 } else Gpt.getResponseForText(userId, update.message.text)
             }
-            getGptResponseJob.invokeOnCompletion { typingJob.cancel() }
-            getGptResponseJob.await()
+        ).onSuccess {
+            sendMessage(chatId, it, ParseMode.MARKDOWN)
+        }.onFailure {
+            logger.error(it) {}
+            sendMessage(chatId, "An error has occurred. Please try calling the /cancel command.")
         }
-            .onSuccess { sendMessage(update.chatId, it, ParseMode.MARKDOWN) }
-            .onFailure {
-                logger.error(it) {}
-                sendMessage(update.chatId, "An error has occurred. Please try calling the /cancel command.")
-            }
     }
 
-    private fun sendTypingAction(chatId: Long) {
+    private fun handleImageCommand(update: Update) {
+        if (isUserHasAccess(update.userId).not()) {
+            sendAccessDeniedMessage(update.chatId)
+        }
+
+        val prompt = update.message.text.substringAfter("/${CommandType.IMAGE.name.lowercase()} ")
+        val chatId = update.chatId
+        wrapWithWaiting(
+            waitingBody = { sendAction(chatId, "upload_photo") },
+            messageBody = { Gpt.generateImage(prompt) }
+        ).onSuccess {
+            sendPhotoMessage(chatId, it)
+        }.onFailure {
+            logger.error(it) {}
+            sendMessage(chatId, "An image generation error has occurred.")
+        }
+    }
+
+    private fun wrapWithWaiting(
+        waitingBody: () -> Unit,
+        messageBody: suspend () -> Result<String>
+    ): Result<String> {
+        return runBlocking(Dispatchers.IO) {
+            val actionJob = launch {
+                while (true) {
+                    waitingBody.invoke()
+                    delay(5.seconds)
+                }
+            }
+            val messageJob = async { messageBody.invoke() }
+            messageJob.invokeOnCompletion { actionJob.cancel() }
+            messageJob.await()
+        }
+    }
+
+    private fun isUserHasAccess(userId: Long): Boolean {
+        return transaction {
+            userId == botSettings.telegramBotAdminId || User.findById(userId) != null
+        }
+    }
+
+    private fun sendAction(chatId: Long, action: String) {
         val sendChatAction = SendChatAction.builder()
             .chatId(chatId)
-            .action("typing")
+            .action(action)
             .build()
         execute(sendChatAction)
     }
@@ -121,9 +155,23 @@ class Bot(private val botSettings: BotSettings) : TelegramLongPollingBot(botSett
         execute(sendMessage)
     }
 
+    private fun sendPhotoMessage(chatId: Long, url: String) {
+        val inputFile = InputFile(url)
+        val sendPhoto = SendPhoto.builder()
+            .chatId(chatId)
+            .photo(inputFile)
+            .build()
+        execute(sendPhoto)
+    }
+
+    private fun sendAccessDeniedMessage(chatId: Long) {
+        sendMessage(chatId, "You don't have access.")
+    }
+
     private fun setCommands() {
         val resetCommand = SetMyCommands.builder()
             .command(BotCommand(CommandType.CANCEL.toString().lowercase(), "Clear current conversation state"))
+            .command(BotCommand(CommandType.IMAGE.toString().lowercase(), "Generate image"))
             .build()
         execute(resetCommand)
     }

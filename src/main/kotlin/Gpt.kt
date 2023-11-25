@@ -1,5 +1,11 @@
-import com.aallam.openai.api.chat.*
+import com.aallam.openai.api.BetaOpenAI
+import com.aallam.openai.api.chat.ChatMessage
+import com.aallam.openai.api.chat.ChatRole
+import com.aallam.openai.api.chat.chatCompletionRequest
+import com.aallam.openai.api.chat.chatMessage
 import com.aallam.openai.api.http.Timeout
+import com.aallam.openai.api.image.ImageSize
+import com.aallam.openai.api.image.imageCreation
 import com.aallam.openai.api.logging.LogLevel
 import com.aallam.openai.api.logging.Logger
 import com.aallam.openai.api.model.ModelId
@@ -8,6 +14,7 @@ import com.aallam.openai.client.OpenAI
 import com.aallam.openai.client.OpenAIConfig
 import kotlin.time.Duration.Companion.minutes
 
+@OptIn(BetaOpenAI::class)
 object Gpt {
     private val openAIConfig = OpenAIConfig(
         token = BotSettings.openAIKey,
@@ -26,36 +33,35 @@ object Gpt {
         }
     }
 
-    suspend fun getResponseForText(userId: Long, message: String): Result<String> = runCatching {
-        val chatMessage = ChatMessage(
-            role = ChatRole.User,
+    suspend fun getResponseForText(userId: Long, message: String) = runCatching {
+        val chatMessage = chatMessage {
+            role = ChatRole.User
             content = message
-        )
-        return getResponse(userId, chatMessage)
+        }
+        getResponse(userId, chatMessage)
     }
 
-    suspend fun getResponseForImage(userId: Long, imageUrl: String, imageCaption: String?): Result<String> = runCatching {
-        val chatMessage = ChatMessage(
-            role = ChatRole.User,
-            content = listOfNotNull(
-                imageCaption?.let { TextPart(it) },
-                ImagePart(imageUrl)
-            )
-        )
-        return getResponse(userId, chatMessage)
+    suspend fun getResponseForImage(userId: Long, imageUrl: String, imageCaption: String?) = runCatching {
+        val chatMessage = chatMessage {
+            role = ChatRole.User
+            content {
+                imageCaption?.let { text(it) }
+                image(imageUrl)
+            }
+        }
+        getResponse(userId, chatMessage)
     }
 
-    private suspend fun getResponse(userId: Long, chatMessage: ChatMessage): Result<String> {
+    private suspend fun getResponse(userId: Long, chatMessage: ChatMessage): String {
         userContexts.getOrPut(userId) { mutableListOf() }.add(chatMessage)
 
-        val maxTokens = if (BotSettings.visionModelUsed()) {
-            4096
-        } else null
-        val chatCompletionRequest = ChatCompletionRequest(
-            model = ModelId(BotSettings.openAIModel),
-            messages = userContexts.getValue(userId),
-            maxTokens = maxTokens
-        )
+        val chatCompletionRequest = chatCompletionRequest {
+            this.model = ModelId(BotSettings.openAIModel)
+            this.messages = userContexts.getValue(userId)
+            this.maxTokens = if (BotSettings.visionModelUsed()) {
+                4096
+            } else null
+        }
         val responseContent = openAI.chatCompletion(chatCompletionRequest).choices
             .firstOrNull()?.message?.content ?: "Answer is empty"
         userContexts.getValue(userId).add(
@@ -64,6 +70,17 @@ object Gpt {
                 content = responseContent
             )
         )
-        return Result.success(responseContent)
+        return responseContent
+    }
+
+    suspend fun generateImage(prompt: String) = runCatching {
+        val imageCreation = imageCreation {
+            this.prompt = prompt
+            this.n = 1
+            this.model = ModelId("dall-e-3")
+            this.user = "url"
+            this.size = ImageSize.is1024x1024
+        }
+        openAI.imageURL(imageCreation).first().url
     }
 }

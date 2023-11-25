@@ -1,7 +1,7 @@
 import org.telegram.telegrambots.meta.api.objects.Update
 
 enum class CommandType {
-    START, ADD_USER, CANCEL, UNKNOWN
+    START, ADD_USER, CANCEL, IMAGE, UNKNOWN
 }
 
 fun Update.toCommandType(): CommandType? {
