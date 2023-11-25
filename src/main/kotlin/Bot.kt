@@ -34,12 +34,12 @@ class Bot(private val botSettings: BotSettings) : TelegramLongPollingBot(botSett
     }
 
     private fun handleStartCommand(update: Update) {
-        val messageText = "Your telegram User ID is: ${update.message.from.id}. Send it to bot administrator."
+        val messageText = "Your telegram User ID is: ${update.userId}. Send it to bot administrator."
         sendMessage(update.chatId, messageText)
     }
 
     private fun handleAddUserCommand(update: Update) {
-        val isSentByAdmin = update.message.from.id == botSettings.telegramBotAdminId
+        val isSentByAdmin = update.userId == botSettings.telegramBotAdminId
         if (isSentByAdmin.not()) {
             sendMessage(update.chatId, "Access is denied")
             return
@@ -56,13 +56,12 @@ class Bot(private val botSettings: BotSettings) : TelegramLongPollingBot(botSett
     }
 
     private fun handleCancelCommand(update: Update) {
-        val userId = update.message.from.id
-        Gpt.clearUserContext(userId)
+        Gpt.clearUserContext(update.userId)
         sendMessage(update.chatId, "Context cleared.")
     }
 
     private fun handleGPTResponse(update: Update) {
-        val userId = update.message.from.id
+        val userId = update.userId
         val userHasAccess = transaction {
             userId == botSettings.telegramBotAdminId || User.findById(userId) != null
         }
@@ -121,4 +120,5 @@ class Bot(private val botSettings: BotSettings) : TelegramLongPollingBot(botSett
     }
 
     private val Update.chatId get() = message.chatId
+    private val Update.userId get() = message.from.id
 }
