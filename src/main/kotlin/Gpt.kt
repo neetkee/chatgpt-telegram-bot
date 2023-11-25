@@ -1,6 +1,4 @@
-import com.aallam.openai.api.chat.ChatCompletionRequest
-import com.aallam.openai.api.chat.ChatMessage
-import com.aallam.openai.api.chat.ChatRole
+import com.aallam.openai.api.chat.*
 import com.aallam.openai.api.http.Timeout
 import com.aallam.openai.api.logging.LogLevel
 import com.aallam.openai.api.logging.Logger
@@ -28,16 +26,35 @@ object Gpt {
         }
     }
 
-    suspend fun getResponse(userId: Long, message: String): Result<String> = runCatching {
-        val chatCompletionMessage = ChatMessage(
+    suspend fun getResponseForText(userId: Long, message: String): Result<String> = runCatching {
+        val chatMessage = ChatMessage(
             role = ChatRole.User,
             content = message
         )
-        userContexts.getOrPut(userId) { mutableListOf() }.add(chatCompletionMessage)
+        return getResponse(userId, chatMessage)
+    }
 
+    suspend fun getResponseForImage(userId: Long, imageUrl: String, imageCaption: String?): Result<String> = runCatching {
+        val chatMessage = ChatMessage(
+            role = ChatRole.User,
+            content = listOfNotNull(
+                imageCaption?.let { TextPart(it) },
+                ImagePart(imageUrl)
+            )
+        )
+        return getResponse(userId, chatMessage)
+    }
+
+    private suspend fun getResponse(userId: Long, chatMessage: ChatMessage): Result<String> {
+        userContexts.getOrPut(userId) { mutableListOf() }.add(chatMessage)
+
+        val maxTokens = if (BotSettings.visionModelUsed()) {
+            4096
+        } else null
         val chatCompletionRequest = ChatCompletionRequest(
             model = ModelId(BotSettings.openAIModel),
-            messages = userContexts.getValue(userId)
+            messages = userContexts.getValue(userId),
+            maxTokens = maxTokens
         )
         val responseContent = openAI.chatCompletion(chatCompletionRequest).choices
             .firstOrNull()?.message?.content ?: "Answer is empty"

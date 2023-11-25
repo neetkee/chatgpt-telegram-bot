@@ -2,6 +2,7 @@ import kotlinx.coroutines.*
 import mu.KotlinLogging
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
+import org.telegram.telegrambots.meta.api.methods.GetFile
 import org.telegram.telegrambots.meta.api.methods.ParseMode
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands
 import org.telegram.telegrambots.meta.api.methods.send.SendChatAction
@@ -20,9 +21,16 @@ class Bot(private val botSettings: BotSettings) : TelegramLongPollingBot(botSett
     }
 
     override fun onUpdateReceived(update: Update) {
-        if (update.hasMessage().not() || update.message.hasText().not()) {
-            sendMessage(update.chatId, "Only text is supported.")
-            return
+        if (botSettings.visionModelUsed()) {
+            if (update.hasText().not() && update.hasPhotos().not()) {
+                sendMessage(update.chatId, "Only text and photos are supported.")
+                return
+            }
+        } else {
+            if (update.hasText().not()) {
+                sendMessage(update.chatId, "Only text is supported.")
+                return
+            }
         }
         when (update.toCommandType()) {
             CommandType.START -> handleStartCommand(update)
@@ -77,7 +85,15 @@ class Bot(private val botSettings: BotSettings) : TelegramLongPollingBot(botSett
                     delay(5.seconds)
                 }
             }
-            val getGptResponseJob = async { Gpt.getResponse(userId, update.message.text) }
+            val getGptResponseJob = async {
+                val photos = update.message.photo
+                if (photos.isNullOrEmpty().not()) {
+                    val photo = photos.last()
+                    val photoFileId = photo.fileId
+                    val photoUrl = execute(GetFile(photoFileId)).getFileUrl(botSettings.telegramToken)
+                    Gpt.getResponseForImage(userId, photoUrl, update.message.caption)
+                } else Gpt.getResponseForText(userId, update.message.text)
+            }
             getGptResponseJob.invokeOnCompletion { typingJob.cancel() }
             getGptResponseJob.await()
         }
@@ -115,10 +131,13 @@ class Bot(private val botSettings: BotSettings) : TelegramLongPollingBot(botSett
     private fun logSettings() {
         listOf(
             "Bot username: ${botSettings.telegramBotUsername}",
-            "OpenAI model: ${botSettings.openAIModel}"
+            "OpenAI model: ${botSettings.openAIModel}",
+            "Is vision supported: ${botSettings.visionModelUsed()}"
         ).forEach { message -> logger.info(message) }
     }
 
     private val Update.chatId get() = message.chatId
     private val Update.userId get() = message.from.id
+    private fun Update.hasText() = hasMessage() && message.hasText()
+    private fun Update.hasPhotos() = hasMessage() && message.photo.isNullOrEmpty().not()
 }
