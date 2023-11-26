@@ -75,6 +75,7 @@ class Bot(private val botSettings: BotSettings) : TelegramLongPollingBot(botSett
         val userId = update.userId
         if (isUserHasAccess(userId).not()) {
             sendAccessDeniedMessage(update.chatId)
+            return
         }
 
         val chatId = update.chatId
@@ -100,6 +101,7 @@ class Bot(private val botSettings: BotSettings) : TelegramLongPollingBot(botSett
     private fun handleImageCommand(update: Update) {
         if (isUserHasAccess(update.userId).not()) {
             sendAccessDeniedMessage(update.chatId)
+            return
         }
 
         val prompt = update.message.text.substringAfter("/${CommandType.IMAGE.name.lowercase()} ")
