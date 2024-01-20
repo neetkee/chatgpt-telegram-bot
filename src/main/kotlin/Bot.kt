@@ -157,6 +157,7 @@ class Bot(private val botSettings: BotSettings) : TelegramLongPollingBot(botSett
                 .build()
             execute(sendMessage)
         }.onFailure {
+            logger.error(it) {}
             // if we tried to send message with markdown, and it failed, try to send it without markdown
             if (parseMode == ParseMode.MARKDOWN) {
                 val sendMessage = SendMessage.builder()
