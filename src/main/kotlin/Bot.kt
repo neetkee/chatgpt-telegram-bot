@@ -149,12 +149,23 @@ class Bot(private val botSettings: BotSettings) : TelegramLongPollingBot(botSett
     }
 
     private fun sendMessage(chatId: Long, messageText: String, parseMode: String? = null) {
-        val sendMessage = SendMessage.builder()
-            .chatId(chatId)
-            .text(messageText)
-            .parseMode(parseMode)
-            .build()
-        execute(sendMessage)
+        runCatching {
+            val sendMessage = SendMessage.builder()
+                .chatId(chatId)
+                .text(messageText)
+                .parseMode(parseMode)
+                .build()
+            execute(sendMessage)
+        }.onFailure {
+            // if we tried to send message with markdown, and it failed, try to send it without markdown
+            if (parseMode == ParseMode.MARKDOWN) {
+                val sendMessage = SendMessage.builder()
+                    .chatId(chatId)
+                    .text(messageText)
+                    .build()
+                execute(sendMessage)
+            }
+        }
     }
 
     private fun sendPhotoMessage(chatId: Long, url: String) {
