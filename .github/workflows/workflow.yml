@@ -12,9 +12,7 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '17'
+      - name: login
+        run: echo ${{ secrets.REGISTRY_TOKEN }} | docker login ghcr.io -u neetkee --password-stdin
       - name: build
-        run: ./gradlew jibDockerBuild --image=ghcr.io/neetkee/chatgpt-telegram-bot
-      - name: push
-        run: |
-          echo ${{ secrets.REGISTRY_TOKEN }} | docker login ghcr.io -u neetkee --password-stdin
-          docker push ghcr.io/neetkee/chatgpt-telegram-bot:latest
+        run: ./gradlew jib --image=ghcr.io/neetkee/chatgpt-telegram-bot
