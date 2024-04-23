@@ -4,8 +4,9 @@ import com.aallam.openai.api.chat.ChatRole
 import com.aallam.openai.api.chat.chatCompletionRequest
 import com.aallam.openai.api.chat.chatMessage
 import com.aallam.openai.api.http.Timeout
+import com.aallam.openai.api.image.ImageCreation
 import com.aallam.openai.api.image.ImageSize
-import com.aallam.openai.api.image.imageCreation
+import com.aallam.openai.api.image.Quality
 import com.aallam.openai.api.logging.LogLevel
 import com.aallam.openai.api.logging.Logger
 import com.aallam.openai.api.model.ModelId
@@ -58,9 +59,6 @@ object Gpt {
         val chatCompletionRequest = chatCompletionRequest {
             this.model = ModelId(BotSettings.openAIModel)
             this.messages = userContexts.getValue(userId)
-            this.maxTokens = if (BotSettings.visionModelUsed()) {
-                4096
-            } else null
         }
         val responseContent = openAI.chatCompletion(chatCompletionRequest).choices
             .firstOrNull()?.message?.content ?: "Answer is empty"
@@ -74,13 +72,14 @@ object Gpt {
     }
 
     suspend fun generateImage(prompt: String) = runCatching {
-        val imageCreation = imageCreation {
-            this.prompt = prompt
-            this.n = 1
-            this.model = ModelId("dall-e-3")
-            this.user = "url"
-            this.size = ImageSize.is1024x1024
-        }
+        val imageCreation = ImageCreation(
+            prompt = prompt,
+            n = 1,
+            size = ImageSize.is1024x1024,
+            user = "url",
+            model = ModelId("dall-e-3"),
+            quality = Quality.HD
+        )
         openAI.imageURL(imageCreation).first().url
     }
 }
