@@ -23,7 +23,7 @@ class Bot(private val botSettings: BotSettings) : TelegramLongPollingBot(botSett
     }
 
     override fun onUpdateReceived(update: Update) {
-        if (botSettings.visionModelUsed()) {
+        if (botSettings.isVisionModelUsed) {
             if (update.hasText().not() && update.hasPhotos().not()) {
                 sendMessage(update.chatId, "Only text and photos are supported.")
                 return
@@ -194,7 +194,7 @@ class Bot(private val botSettings: BotSettings) : TelegramLongPollingBot(botSett
         listOf(
             "Bot username: ${botSettings.telegramBotUsername}",
             "OpenAI model: ${botSettings.openAIModel}",
-            "Is vision supported: ${botSettings.visionModelUsed()}"
+            "Is vision supported: ${botSettings.isVisionModelUsed}"
         ).forEach { message -> logger.info(message) }
     }
 

@@ -20,7 +20,7 @@ services:
     restart: unless-stopped
     environment:
       - OPENAI_KEY=OpenAIKey
-      - OPENAI_MODEL=gpt-3.5-turbo-16k
+      - OPENAI_MODEL=gpt-4-vision-preview
       - SQLITE_PATH=/tmp/bot.sqlite
       - TELEGRAM_BOT_ADMIN_ID=1234567
       - TELEGRAM_BOT_TOKEN=123456:ABC_Def
