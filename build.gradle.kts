@@ -14,7 +14,7 @@ repositories {
     mavenCentral()
 }
 
-val exposedVersion = "0.49.0"
+val exposedVersion = "0.50.0"
 dependencies {
     implementation("org.telegram:telegrambots:6.9.7.1")
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
@@ -23,7 +23,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
-    implementation(platform("com.aallam.openai:openai-client-bom:3.7.1"))
+    implementation(platform("com.aallam.openai:openai-client-bom:3.7.2"))
     implementation("com.aallam.openai:openai-client")
     implementation("io.ktor:ktor-client-cio")
 
