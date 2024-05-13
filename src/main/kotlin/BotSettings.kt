@@ -3,7 +3,9 @@ object BotSettings {
         "gpt-4-turbo",
         "gpt-4-turbo-2024-04-09",
         "gpt-4-vision-preview",
-        "gpt-4-1106-vision-preview"
+        "gpt-4-1106-vision-preview",
+        "gpt-4o",
+        "gpt-4o-2024-05-13"
     )
 
     val telegramToken = EnvReader.getEnv("TELEGRAM_BOT_TOKEN")
