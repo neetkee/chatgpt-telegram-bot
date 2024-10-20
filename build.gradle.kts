@@ -14,12 +14,12 @@ repositories {
     mavenCentral()
 }
 
-val exposedVersion = "0.53.0"
+val exposedVersion = "0.55.0"
 dependencies {
     implementation("org.telegram:telegrambots:6.9.7.1")
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
-    implementation("ch.qos.logback:logback-classic:1.5.7")
-    implementation("org.xerial:sqlite-jdbc:3.46.1.0")
+    implementation("ch.qos.logback:logback-classic:1.5.11")
+    implementation("org.xerial:sqlite-jdbc:3.46.1.3")
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
