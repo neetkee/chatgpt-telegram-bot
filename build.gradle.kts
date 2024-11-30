@@ -2,7 +2,7 @@ import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 
 plugins {
     kotlin("jvm") version "1.9.25"
-    id("com.google.cloud.tools.jib") version "3.4.3"
+    id("com.google.cloud.tools.jib") version "3.4.4"
     id("com.github.ben-manes.versions") version "0.51.0"
     application
 }
@@ -14,12 +14,12 @@ repositories {
     mavenCentral()
 }
 
-val exposedVersion = "0.55.0"
+val exposedVersion = "0.56.0"
 dependencies {
     implementation("org.telegram:telegrambots:6.9.7.1")
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
-    implementation("ch.qos.logback:logback-classic:1.5.11")
-    implementation("org.xerial:sqlite-jdbc:3.46.1.3")
+    implementation("ch.qos.logback:logback-classic:1.5.12")
+    implementation("org.xerial:sqlite-jdbc:3.47.1.0")
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
