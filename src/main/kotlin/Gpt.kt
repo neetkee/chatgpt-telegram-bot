@@ -1,4 +1,3 @@
-import com.aallam.openai.api.BetaOpenAI
 import com.aallam.openai.api.chat.ChatMessage
 import com.aallam.openai.api.chat.ChatRole
 import com.aallam.openai.api.chat.chatCompletionRequest
@@ -15,7 +14,6 @@ import com.aallam.openai.client.OpenAI
 import com.aallam.openai.client.OpenAIConfig
 import kotlin.time.Duration.Companion.minutes
 
-@OptIn(BetaOpenAI::class)
 object Gpt {
     private val openAIConfig = OpenAIConfig(
         token = BotSettings.openAIKey,
@@ -34,15 +32,15 @@ object Gpt {
         }
     }
 
-    suspend fun getResponseForText(userId: Long, message: String) = runCatching {
+    suspend fun getResponseForText(userId: Long, model: String, message: String) = runCatching {
         val chatMessage = chatMessage {
             role = ChatRole.User
             content = message
         }
-        getResponse(userId, chatMessage)
+        getResponse(userId, model, chatMessage)
     }
 
-    suspend fun getResponseForImage(userId: Long, imageUrl: String, imageCaption: String?) = runCatching {
+    suspend fun getResponseForImage(userId: Long, model: String, imageUrl: String, imageCaption: String?) = runCatching {
         val chatMessage = chatMessage {
             role = ChatRole.User
             content {
@@ -50,14 +48,14 @@ object Gpt {
                 image(imageUrl)
             }
         }
-        getResponse(userId, chatMessage)
+        getResponse(userId, model, chatMessage)
     }
 
-    private suspend fun getResponse(userId: Long, chatMessage: ChatMessage): String {
+    private suspend fun getResponse(userId: Long, model: String, chatMessage: ChatMessage): String {
         userContexts.getOrPut(userId) { mutableListOf() }.add(chatMessage)
 
         val chatCompletionRequest = chatCompletionRequest {
-            this.model = ModelId(BotSettings.openAIModel)
+            this.model = ModelId(model)
             this.messages = userContexts.getValue(userId)
         }
         val responseContent = openAI.chatCompletion(chatCompletionRequest).choices

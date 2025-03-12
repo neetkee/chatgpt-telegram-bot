@@ -1,9 +1,9 @@
 import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
 
 plugins {
-    kotlin("jvm") version "1.9.25"
+    kotlin("jvm") version "2.1.10"
     id("com.google.cloud.tools.jib") version "3.4.4"
-    id("com.github.ben-manes.versions") version "0.51.0"
+    id("com.github.ben-manes.versions") version "0.52.0"
     application
 }
 
@@ -14,16 +14,19 @@ repositories {
     mavenCentral()
 }
 
-val exposedVersion = "0.56.0"
+val exposedVersion = "0.60.0"
+val telegramBotsVersion = "8.2.0"
 dependencies {
-    implementation("org.telegram:telegrambots:6.9.7.1")
+    implementation("org.telegram:telegrambots-longpolling:$telegramBotsVersion")
+    implementation("org.telegram:telegrambots-client:$telegramBotsVersion")
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
-    implementation("ch.qos.logback:logback-classic:1.5.12")
-    implementation("org.xerial:sqlite-jdbc:3.47.1.0")
+    implementation("ch.qos.logback:logback-classic:1.5.17")
+    implementation("org.xerial:sqlite-jdbc:3.49.1.0")
+    implementation("org.flywaydb:flyway-core:11.3.4")
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
-    implementation(platform("com.aallam.openai:openai-client-bom:3.8.2"))
+    implementation(platform("com.aallam.openai:openai-client-bom:4.0.1"))
     implementation("com.aallam.openai:openai-client")
     implementation("io.ktor:ktor-client-cio")
 

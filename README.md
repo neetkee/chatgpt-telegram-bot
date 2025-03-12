@@ -24,7 +24,6 @@ services:
       - SQLITE_PATH=/tmp/bot.sqlite
       - TELEGRAM_BOT_ADMIN_ID=1234567
       - TELEGRAM_BOT_TOKEN=123456:ABC_Def
-      - TELEGRAM_BOT_USERNAME=CoolUsernameForBot
 ```
 
 - You can also use [Docker Volumes](https://docs.docker.com/storage/volumes/) to manage your SQLite database.
@@ -32,14 +31,13 @@ services:
 
 ### Environment variables:
 
-| Name                  | Description                                                |
-|-----------------------|------------------------------------------------------------|
-| OPENAI_KEY            | API key used to access OpenAI                              |
-| OPENAI_MODEL          | Model to use for requests. Defaults to gpt-3.5-turbo       |
-| SQLITE_PATH           | The path to the SQLite database file                       |
-| TELEGRAM_BOT_ADMIN_ID | The unique identifier of the Telegram admin for the bot    |
-| TELEGRAM_BOT_TOKEN    | The token string used to authenticate the Telegram bot API |
-| TELEGRAM_BOT_USERNAME | The username of the Telegram bot                           |
+| Name                  | Description                                                               |
+|-----------------------|---------------------------------------------------------------------------|
+| OPENAI_KEY            | API key used to access OpenAI                                             |
+| OPENAI_MODEL          | Default model to use for requests. gpt-4.0 is used if the value is absent |
+| SQLITE_PATH           | The path to the SQLite database file                                      |
+| TELEGRAM_BOT_ADMIN_ID | The unique identifier of the Telegram admin for the bot                   |
+| TELEGRAM_BOT_TOKEN    | The token string used to authenticate the Telegram bot API                |
 
 ### Commands:
 

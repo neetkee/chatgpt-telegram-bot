@@ -1,17 +1,20 @@
 import mu.KotlinLogging
+import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.transactions.transaction
-import org.telegram.telegrambots.meta.TelegramBotsApi
-import org.telegram.telegrambots.updatesreceivers.DefaultBotSession
+import org.telegram.telegrambots.longpolling.TelegramBotsLongPollingApplication
 
 private val logger = KotlinLogging.logger {}
+
 fun main() {
+    Flyway
+        .configure()
+        .dataSource("jdbc:sqlite:${BotSettings.sqlitePath}", "", "")
+        .baselineOnMigrate(true)
+        .load()
+        .migrate()
     Database.connect("jdbc:sqlite:${BotSettings.sqlitePath}", driver = "org.sqlite.JDBC")
-    transaction { SchemaUtils.create(UserTable) }
-    TelegramBotsApi(DefaultBotSession::class.java).run {
-        val bot = Bot(BotSettings)
-        registerBot(bot)
+    TelegramBotsLongPollingApplication().run {
+        registerBot(BotSettings.telegramToken, Bot())
         logger.info { "Bot started." }
     }
 }
