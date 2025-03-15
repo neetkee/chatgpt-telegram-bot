@@ -30,10 +30,12 @@ class Bot : LongPollingUpdateConsumer {
 
     override fun consume(updates: List<Update>) {
         updates.forEach { update ->
-            val channel = getOrCreateChatChannel(update.chatId)
-            updatesScope.launch {
-                channel.send(update)
-            }
+            runCatching {
+                val channel = getOrCreateChatChannel(update.chatId)
+                updatesScope.launch {
+                    channel.send(update)
+                }
+            }.onFailure { error -> logger.error(error) { "Error occurred while processing update" } }
         }
     }
 
